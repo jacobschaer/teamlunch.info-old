@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=255)),
-                ('team', models.ForeignKey(to='teambuilder.Team')),
+                ('team', models.ForeignKey(to='teams.Team')),
             ],
         ),
     ]
