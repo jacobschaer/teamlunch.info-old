@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+    {% block content %}
+      <div class="jumbotron">
+        <h1>Team Lunches - Simplified</h1>
+        <p class="lead">
+          Automatically select who will pick lunch for your team!
+          It's free and easy, so start today!
+        </p>
+        <a class="btn btn-default btn-lg" href="{% url 'teams:add' %}">
+          <span class="glyphicon glyphicon-star" aria-hidden="true"></span> Build Your Team
+        </a>
+      </div>
+
+      <div class="row marketing">
+        <div class="col-lg-6 icon-column text-left">
+          <i class="fa fa-calendar fa-4x"></i>
+        </div>
+        <div class="col-lg-6 instructions">
+          <h2>How does it work?</h2>
+          <ol>
+            <li>Register as a Team Coordinator</li>
+            <li>Choose a Team Name</li>
+            <li>Add Team Members</li>
+            <li>Choose a Lunch Schedule</li>
+          </ol>
+        </div>
+      </div>
+
+    {% endblock %}

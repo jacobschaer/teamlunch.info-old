@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+    {% block content %}
+      <div class="jumbotron">
+        <h1>Simplify Team Lunches</h1>
+        <p class="lead">
+            As teams grow in size, it can be difficult to organize team lunches.
+            Obviously, you can't please everyone so this tool seeks to provide a fair and easy solution.
+        </p>
+      </div>
+
+      <div class="row marketing">
+        <div class="col-lg-6">
+          <h4>How easy?</h4>
+          <ol>
+            <li>Register as a Team Coordinator</li>
+            <li>Choose a Team Name</li>
+            <li>Add Team Members</li>
+            <li>Choose a Lunch Schedule</li>
+          </ol>
+        </div>
+
+        <div class="col-lg-6">
+        <a class="btn btn-default btn-lg" href="{% url 'teams:add' %}">
+          <span class="glyphicon glyphicon-star" aria-hidden="true"></span> Get Started!
+        </a>
+        </div>
+      </div>
+
+    {% endblock %}

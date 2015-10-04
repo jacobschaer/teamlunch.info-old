@@ -1,0 +1,22 @@
+body {
+    background-color: #bbbbbb;
+}
+
+#content {
+  background-color: #eeeeee;
+  padding-bottom: 120px;
+}
+
+.icon-column {
+    padding-left: 60px;
+    font-size:120px;
+}
+
+.instructions {
+    font-size: 25pt;
+    padding-right: 60px;
+}
+
+.instructions h2 {
+    font-size: 40pt;
+}
