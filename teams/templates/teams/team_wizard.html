@@ -6,6 +6,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="jumbotron">
+    <h1>Team Builder Wizard:</h1>
+</div>
 <p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
 <form action="" method="post">{% csrf_token %}
 <table>

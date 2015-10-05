@@ -29,8 +29,12 @@ def cleanup_development_environment():
 def deploy():
     with cd('/var/www/teamlunch.info'):
         run('git pull')
+        run('mkdir -p logs')
+        run('chmod -R g+w logs')
         with prefix('source /usr/share/virtualenvwrapper/virtualenvwrapper.sh'):
             with prefix('workon teamlunch.info'):
                 run('pip install -r production_requirements.txt')
                 run('python manage.py migrate')
+                run('chmod g+w .')
+                run('chmod g+w db.sqlite3')
                 run('cp ~/teamlunch.info/production_settings.py teamlunch/settings.py')
