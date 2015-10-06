@@ -9,7 +9,7 @@ body {
 
 .icon-column {
     padding-left: 60px;
-    font-size:120px;
+    font-size: 75pt;
 }
 
 .instructions {
@@ -19,4 +19,36 @@ body {
 
 .instructions h2 {
     font-size: 40pt;
+}
+
+/* Large */
+@media screen and (min-width: 1200px) {
+}
+
+/* Medium */
+@media screen and (max-width: 1199px) {
+  .marketing .text-left {
+    display:none;
+  }
+}
+
+/* Small */
+@media screen and (max-width: 991px) {
+}
+
+/* Extra Small */
+@media screen and (max-width: 767px) {
+  .marketing {
+    border-top: 2px solid #ddd;
+    margin-top: -20px;
+  }
+  .jumbotron {
+    margin-top: 35px;
+  }
+  .instructions h2 {
+    font-size: 21pt;
+  }
+  .instructions {
+    font-size: 18pt;
+  }
 }
