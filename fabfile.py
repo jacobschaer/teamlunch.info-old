@@ -30,7 +30,8 @@ def deploy():
     run_tests()
     update_requirements()
     with cd('/var/www/teamlunch.info'):
-        run('git pull -Xours')
+        run('rm teamlunch/settings.py')
+        run('git pull')
         run('mkdir -p logs')
         run('chmod -R g+w logs')
         with prefix('source /usr/share/virtualenvwrapper/virtualenvwrapper.sh'):
@@ -40,6 +41,7 @@ def deploy():
                 run('chmod g+w .')
                 run('chmod g+w db.sqlite3')
                 run('cp ~/teamlunch.info/production_settings.py teamlunch/settings.py')
+    sudo('systemctl restart apache2')
 
 def run_tests():
     with prefix('source `which virtualenvwrapper.sh`'):
