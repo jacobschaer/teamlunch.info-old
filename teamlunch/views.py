@@ -1,6 +1,7 @@
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.template import RequestContext, loader
-from django.http import HttpResponse
 
 # Create your views here.
 def index(request):
@@ -14,10 +15,8 @@ def about(request):
     context = RequestContext(request, {})
     return HttpResponse(template.render(context))
 
+@login_required
 def profile(request):
     template = loader.get_template('teamlunch/profile.html')
     context = RequestContext(request, {})
-    if request.user.id:
-        return HttpResponse(template.render(context))
-    else:
-        return redirect('/accounts/login')
+    return HttpResponse(template.render(context))

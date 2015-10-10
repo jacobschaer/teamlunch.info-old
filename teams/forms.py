@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import Form, ModelForm
-from .models import TeamMember, Team
+from .models import TeamMember, Team, Schedule
 
 
 class TeamForm1(Form):
@@ -14,5 +14,7 @@ class TeamForm3(ModelForm):
         model = TeamMember
         fields = ['name', 'email']
 
-class TeamForm4(Form):
-    lunch_schedule = forms.CharField(max_length=255)
+class TeamForm4(ModelForm):
+    class Meta:
+        model = Schedule
+        fields = ['freqency', 'day_of_week', 'day_of_month']

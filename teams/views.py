@@ -8,6 +8,7 @@ from django.forms.formsets import formset_factory, BaseFormSet
 from .models import TeamMember, Team
 
 from .forms import TeamForm1, TeamForm2, TeamForm3, TeamForm4
+from allauth.account.forms import LoginForm
 
 from collections import OrderedDict
 
@@ -17,15 +18,21 @@ def index(request):
     context = RequestContext(request, {})
     return HttpResponse(template.render(context))
 
-FORMS = [("username", TeamForm1),
+FORMS = [("register", LoginForm),
+         ("coordinator", TeamForm1),
          ("teamname", TeamForm2),
          ("teammates", formset_factory(TeamForm3, extra=5)),
          ("schedule", TeamForm4)]
 
-TEMPLATES = {"username": "teams/wizard_username.html",
+TEMPLATES = {"register": "teams/wizard_register.html",
+             "coordinator": "teams/wizard_coordinator.html",
              "teamname": "teams/wizard_teamname.html",
              "teammates": "teams/wizard_teammates.html",
              "schedule": "teams/wizard_schedule.html"}
+
+def show_login_step(wizard):
+    # check if the field ``leave_message`` was checked.
+    return not wizard.request.user.is_authenticated()
 
 class TeamWizard(SessionWizardView):
     def get_template_names(self):
@@ -47,3 +54,14 @@ class TeamWizard(SessionWizardView):
         return render_to_response('teams/done.html', {
             'form_data': form_data,
         })
+
+    def get_form(self, step=None, data=None, files=None):
+        form = super(SessionWizardView, self).get_form(step, data, files)
+
+        # determine the step if not given
+        if step is None:
+            step = self.steps.current
+
+        if step == 'coordinator':
+            form.initial['coordinator_name'] = self.request.user.username
+        return form

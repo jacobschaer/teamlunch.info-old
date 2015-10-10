@@ -21,7 +21,7 @@ class HomePageTestCase(SimpleTestCase):
         response = self.c.get('/')
         self.assertContains(response, 'Log In')
 
-    def test_profile_button_present_wh  en_authenticated(self):
+    def test_profile_button_present_when_authenticated(self):
         user = create_user_and_login(self.c)
         response = self.c.get('/')       
         self.assertContains(response, 'Profile')
@@ -33,10 +33,14 @@ class HomePageTestCase(SimpleTestCase):
         self.assertContains(response, 'Logout')
         user.delete()
 
-class ProfilePageTestsCase(SimpleTestCase):
+class ProfilePageTestCase(SimpleTestCase):
     def setUp(self):
         self.c = Client()
 
     def test_redirect_to_login_when_not_authenticated(self):
         response = self.c.get('/accounts/profile')
-        self.assertRedirects(response, '/accounts/login', status_code=302, target_status_code=301)
+        self.assertRedirects(response, '/accounts/login/?next=/accounts/profile', status_code=302, target_status_code=200)
+
+class WizardTestCase(SimpleTestCase):
+    def setUp(self):
+        self.c = Client()

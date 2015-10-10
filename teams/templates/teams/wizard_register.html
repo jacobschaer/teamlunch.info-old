@@ -1,0 +1,14 @@
+{% extends "teams/team_wizard.html" %}
+{% load account %}
+{% if user.is_authenticated %}
+    {% block step_title %}
+        Sorry, but you must register!
+    {% endblock %}
+    {% block step_description %}
+        You must register so we can identify you later! Social logins are allowed and encouraged!
+    {% endblock %}
+
+{% else %}
+
+{% endif %}
+

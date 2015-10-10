@@ -27,8 +27,10 @@ def cleanup_development_environment():
         local('rmvirtualenv teamlunch.info')
 
 def deploy():
+    run_tests()
+    update_requirements()
     with cd('/var/www/teamlunch.info'):
-        run('git pull')
+        run('git pull -Xours')
         run('mkdir -p logs')
         run('chmod -R g+w logs')
         with prefix('source /usr/share/virtualenvwrapper/virtualenvwrapper.sh'):
@@ -38,3 +40,14 @@ def deploy():
                 run('chmod g+w .')
                 run('chmod g+w db.sqlite3')
                 run('cp ~/teamlunch.info/production_settings.py teamlunch/settings.py')
+
+def run_tests():
+    with prefix('source `which virtualenvwrapper.sh`'):
+        with prefix('workon teamlunch.info'):
+            local('python manage.py test')
+
+def update_requirements():
+    with prefix('source `which virtualenvwrapper.sh`'):
+        with prefix('workon teamlunch.info'):
+            local('pip freeze > development_requirements.txt')
+            local('pip freeze > production_requirements.txt')

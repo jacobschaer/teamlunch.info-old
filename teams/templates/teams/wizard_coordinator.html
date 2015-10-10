@@ -1,0 +1,10 @@
+{% extends "teams/team_wizard.html" %}
+{% load account %}
+
+{% block step_title %}
+    Welcome {{ request.user.username }}! 
+{% endblock %}
+{% block step_description %}
+    Since you will be your team's first coordinator, please make sure the following name is easily identifiable by your co-workers.
+{% endblock %}
+
