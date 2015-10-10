@@ -12,12 +12,14 @@
 <div class="row">
     {% block step_description %}{% endblock %}
 </div>
-<div class="row">
+<div class="row" id="myForm">
     <form action="" method="post">{% csrf_token %}
         <table>
             {{ wizard.management_form }}
             {% if wizard.form.forms %}
                 {{ wizard.form.management_form }}
+                {{ wizard.form.non_field_errors }}
+                {{ wizard.form.errors }}
                 {% for form in wizard.form.forms %}
                     {{ form }}
                 {% endfor %}

@@ -2,6 +2,10 @@ body {
     background-color: #bbbbbb;
 }
 
+nav.navbar {
+    margin-bottom: 0;
+}
+
 #content {
   background-color: #eeeeee;
   padding-bottom: 120px;
@@ -19,6 +23,10 @@ body {
 
 .instructions h2 {
     font-size: 40pt;
+}
+
+.jumbotron {
+    padding-top: 15px;
 }
 
 /* Large */
@@ -41,9 +49,6 @@ body {
   .marketing {
     border-top: 2px solid #ddd;
     margin-top: -20px;
-  }
-  .jumbotron {
-    margin-top: 35px;
   }
   .instructions h2 {
     font-size: 21pt;

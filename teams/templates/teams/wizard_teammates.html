@@ -6,3 +6,27 @@ Choose Your Team-Mates!
 {% block step_description %}
 Add team members to your lunch schedule. They'll be notified by email on how to view the team as well.
 {% endblock %}
+
+{% block extrahead %}
+
+<style type="text/css">
+    .add-row {
+        padding-left:18px;
+        background:url({{ MEDIA_URL }}images/add.png) no-repeat left center;
+    }
+    .delete-row {
+        display:block;
+        margin:6px 0 0 0;
+        padding-left:18px;
+        background:url({{ MEDIA_URL }}images/delete.png) no-repeat left center;
+    }
+    .dynamic-form {
+        margin-bottom:6px;
+        padding-bottom:6px;
+        border-bottom:1px dotted #ccc;
+    }
+    .row1 { background-color: #f9f9f9; }
+    .row2 { background-color: #f3f3f3; }
+    .row3 { background-color: #ededed; }
+</style>
+{% endblock %}

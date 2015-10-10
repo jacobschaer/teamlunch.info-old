@@ -22,5 +22,7 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^about$', views.about, name='about'),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^teams/', include('teams.urls', namespace="teams"))
+    url(r'^teams/', include('teams.urls', namespace="teams")),
+    url(r'^accounts/', include('allauth.urls')),
+    url(r'^accounts/profile', views.profile, name='profile')
 ]

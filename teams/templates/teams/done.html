@@ -6,7 +6,9 @@
       Successfully created Team: {{ form_data.team_name }} with {{ form_data.coordinator_name }} as the coordinator.
       Teammates include:
       <ul>
-        <li>{{ form_data.team_member_name }}</li>
+        {% for team_mate in form_data.team_member_name  %}
+          <li>{{ team_mate }}</li>
+        {% endfor %}
       </ul>
       Schedule is: {{ form_data.lunch_schedule }}
 

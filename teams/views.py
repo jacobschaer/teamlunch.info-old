@@ -4,11 +4,12 @@ from django.http import HttpResponse
 
 from django.shortcuts import render_to_response
 from formtools.wizard.views import SessionWizardView
-from django.forms.formsets import formset_factory
+from django.forms.formsets import formset_factory, BaseFormSet
 from .models import TeamMember, Team
 
 from .forms import TeamForm1, TeamForm2, TeamForm3, TeamForm4
 
+from collections import OrderedDict
 
 # Create your views here.
 def index(request):
@@ -16,15 +17,9 @@ def index(request):
     context = RequestContext(request, {})
     return HttpResponse(template.render(context))
 
-def add(request):
-    template = loader.get_template('teams/add.html')
-    context = RequestContext(request, {})
-    return HttpResponse(template.render(context))
-
-
 FORMS = [("username", TeamForm1),
          ("teamname", TeamForm2),
-         ("teammates", formset_factory(TeamForm3, extra=2)),
+         ("teammates", formset_factory(TeamForm3, extra=5)),
          ("schedule", TeamForm4)]
 
 TEMPLATES = {"username": "teams/wizard_username.html",
@@ -39,8 +34,16 @@ class TeamWizard(SessionWizardView):
     def done(self, form_list, **kwargs):
         form_data = dict()
         for form in form_list:
-            for key in form.cleaned_data.keys():
-                form_data[key] = form.cleaned_data[key]
+            current_data = form.cleaned_data
+            if type(current_data) == list:
+                for sub_form in current_data:
+                    for key in sub_form.keys():
+                        if not key in form_data:
+                            form_data[key] = list()
+                        form_data[key].append(sub_form[key])
+            else:
+                for key in form.cleaned_data.keys():
+                    form_data[key] = form.cleaned_data[key]
         return render_to_response('teams/done.html', {
             'form_data': form_data,
         })
