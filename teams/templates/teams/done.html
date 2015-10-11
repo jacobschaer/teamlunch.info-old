@@ -1,16 +1,15 @@
 {% extends "base.html" %}
     {% block content %}
-    <div class="jumbotron">
-        <h1>Team Builder Wizard:</h1>
-    </div>
-      Successfully created Team: {{ team }} with {{ coordinator }} as the coordinator.
-      Teammates include:
-      <ul>
-        {% for name, email in mates  %}
-          <li>{{ name }}
-            {% if email %} ({{ email }}){% endif %}</li>
-        {% endfor %}
-      </ul>
-      Schedule is: {{ form_data.lunch_schedule }}
-
+      <h1>All Done!</h1>
+      <div class="row">
+      <p>Congrats! You have successfully created a new team with the name: {{ team }}. <br />
+      You have been assigned as a coordinator with nickname: {{ coordinator }}. <br />
+      {{ schedule }} <br />
+      The following teammates have been invited:</p>
+        <ul>
+          {% for name, email in mates  %}
+            <li>{{ name }}
+              {% if email %} ({{ email }}){% endif %}</li>
+          {% endfor %}
+        </ul>
     {% endblock %}

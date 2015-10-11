@@ -1,5 +1,6 @@
 from django.test import TestCase, Client, SimpleTestCase
 from allauth.utils import get_user_model
+from .models import *
 
 def create_user_and_login(client):
     user = get_user_model().objects.create(username='john', is_active=True)
@@ -44,3 +45,37 @@ class ProfilePageTestCase(SimpleTestCase):
 class WizardTestCase(SimpleTestCase):
     def setUp(self):
         self.c = Client()
+
+class ScheduleTestCase(SimpleTestCase):
+    def setUp(self):
+        self.sut = Schedule()
+
+    def test_string_representation_for_days_of_month(self):
+        self.assertEqual(self.sut.order_string(31), '31st')
+        self.assertEqual(self.sut.order_string(29), '29th')
+        self.assertEqual(self.sut.order_string(28), '28th')
+        self.assertEqual(self.sut.order_string(1), '1st')
+        self.assertEqual(self.sut.order_string(2), '2nd')
+        self.assertEqual(self.sut.order_string(3), '3rd')
+
+    def test_string_representation_for_daily_singular(self):
+        self.sut.occurrence_frequency = ScheduleFrequency.DAILY
+        self.sut.advance_notification_days = 1
+        self.assertEqual(str(self.sut), 'Lunches are scheduled every day, with someone being selected 1 day in advance.')
+
+    def test_string_representation_for_daily_plural(self):
+        self.sut.occurrence_frequency = ScheduleFrequency.DAILY
+        self.sut.advance_notification_days = 2
+        self.assertEqual(str(self.sut), 'Lunches are scheduled every day, with someone being selected 2 days in advance.')
+
+    def test_string_representation_for_weekly(self):
+        self.sut.occurrence_frequency = ScheduleFrequency.WEEKLY
+        self.sut.occurrence_day_of_week = ScheduleDayOfWeek.FRIDAY
+        self.sut.advance_notification_days = 1
+        self.assertEqual(str(self.sut), 'Lunches are scheduled every week on FRIDAY, with someone being selected 1 day in advance.')
+
+    def test_string_representation_for_monthly(self):
+        self.sut.occurrence_frequency = ScheduleFrequency.MONTHLY
+        self.sut.occurrence_day_of_month = 2
+        self.sut.advance_notification_days = 1
+        self.assertEqual(str(self.sut), 'Lunches are scheduled every month on the 2nd, with someone being selected 1 day in advance.')

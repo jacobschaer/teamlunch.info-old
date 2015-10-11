@@ -32,12 +32,12 @@
                 $('#id_schedule-occurrence_day_of_week').val('');
             }
         }
-        $( "#id_schedule-occurrence_freqency").change(function() {
-            $( "#id_schedule-occurrence_freqency option:selected" ).each(function() {
+        $( "#id_schedule-occurrence_frequency").change(function() {
+            $( "#id_schedule-occurrence_frequency option:selected" ).each(function() {
                 update_occurrence_frequency(this);
             });
         });
-        update_occurrence_frequency($( "#id_schedule-occurrence_freqency option:selected" ));
+        update_occurrence_frequency($( "#id_schedule-occurrence_frequency option:selected" ));
     </script>
 {% endblock %}
 
@@ -47,7 +47,7 @@
 <div class="row">
     <form action="" method="post">{% csrf_token %}
         {{ wizard.management_form }}
-        My team has a lunch {{ form.occurrence_freqency }} <span id="text_on">on</span> <span id="text_the">the</span> {{ form.occurrence_day_of_week }} {{ form.occurrence_day_of_month }}. The person responsible for choosing lunch should be chosen {{ form.advance_notification_days }} days in advance.
+        My team has a lunch {{ form.occurrence_frequency }} <span id="text_on">on</span> <span id="text_the">the</span> {{ form.occurrence_day_of_week }} {{ form.occurrence_day_of_month }}. The person responsible for choosing lunch should be chosen {{ form.advance_notification_days }} days in advance.
         <br />
         {% if wizard.steps.prev %}
         <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "first step" %}</button>

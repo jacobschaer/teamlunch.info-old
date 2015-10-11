@@ -39,9 +39,11 @@ class TeamWizard(SessionWizardView):
         return [TEMPLATES[self.steps.current]]
 
     def done(self, form_list, **kwargs):
+        keys = self.get_form_list().keys()
+
         # Create Team
         created_team = Team(
-            name = form_list[1].cleaned_data['name']
+            name = form_list[keys.index('teamname')].cleaned_data['name']
         )
         created_team.save()
 
@@ -50,24 +52,24 @@ class TeamWizard(SessionWizardView):
             user = self.request.user,
             is_coordinator = True,
             team = created_team,
-            display_name = form_list[0].cleaned_data['display_name']
+            display_name = form_list[keys.index('coordinator')].cleaned_data['display_name']
         )
         created_team_member.save()
 
         # Create Schedule
-        schedule_form_data = form_list[3].cleaned_data
+        schedule_form_data = form_list[keys.index('schedule')].cleaned_data
         created_schedule = Schedule(
             team = created_team,
-            occurrence_frequency = scheduled_form_data['occurrence_frequency'],
-            occurrence_day_of_week = scheduled_form_data['occurrence_day_of_week'],
-            occurrence_day_of_month = scheduled_form_data['occurrence_day_of_month'],
-            advance_notification_days = scheduled_form_data['advance_notification_days'],
+            occurrence_frequency = schedule_form_data['occurrence_frequency'],
+            occurrence_day_of_week = schedule_form_data['occurrence_day_of_week'],
+            occurrence_day_of_month = schedule_form_data['occurrence_day_of_month'],
+            advance_notification_days = schedule_form_data['advance_notification_days'],
         )
         created_schedule.save()
 
         # Iterate Over New TeamMembers
         created_team_mates = list()
-        for team_member in form_list[2].cleaned_data:
+        for team_member in form_list[keys.index('teammates')].cleaned_data:
             if team_member:
                 created_team_mates.append((team_member['name'], team_member.get('email', None)))
 

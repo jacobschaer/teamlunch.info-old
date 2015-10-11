@@ -39,7 +39,32 @@ class ScheduleDayOfWeek(enum.Enum):
 
 class Schedule(models.Model):
     team = models.ForeignKey(Team)
-    occurrence_freqency = enum.EnumField(ScheduleFrequency, default=ScheduleFrequency.WEEKLY)
-    occurrence_day_of_week = enum.EnumField(ScheduleDayOfWeek, default=ScheduleDayOfWeek.FRIDAY, blank=True)
-    occurrence_day_of_month = models.IntegerField(blank=True)
+    occurrence_frequency = enum.EnumField(ScheduleFrequency, default=ScheduleFrequency.WEEKLY)
+    occurrence_day_of_week = enum.EnumField(ScheduleDayOfWeek, default=ScheduleDayOfWeek.FRIDAY, blank=True, null=True)
+    occurrence_day_of_month = models.IntegerField(blank=True, null=True)
     advance_notification_days = models.IntegerField(default=1)
+
+    def order_string(self, number):
+        suffix = {
+            1 : 'st',
+            2 : 'nd',
+            3 : 'rd',
+        }
+
+        return '{number}{suffix}'.format(number = number, suffix = suffix.get(number % 10, 'th'))
+
+
+    def __str__(self):
+        frequency = ''
+        if self.occurrence_frequency == ScheduleFrequency.DAILY:
+            frequency = 'day'
+        elif self.occurrence_frequency == ScheduleFrequency.WEEKLY:
+            frequency = 'week on ' + str(ScheduleDayOfWeek.values[self.occurrence_day_of_week])
+        else:
+            frequency = 'month on the ' + self.order_string(self.occurrence_day_of_month)
+        
+        return 'Lunches are scheduled every {frequency}, with someone being selected {notification} {day} in advance.'.format(
+            frequency = frequency,
+            notification = self.advance_notification_days,
+            day = 'day' if self.advance_notification_days == 1 else 'days'
+        )

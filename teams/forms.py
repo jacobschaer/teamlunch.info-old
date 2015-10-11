@@ -20,4 +20,4 @@ class TeamForm3(Form):
 class TeamForm4(ModelForm):
     class Meta:
         model = Schedule
-        fields = ['occurrence_freqency', 'occurrence_day_of_week', 'occurrence_day_of_month', 'advance_notification_days']
+        fields = ['occurrence_frequency', 'occurrence_day_of_week', 'occurrence_day_of_month', 'advance_notification_days']
