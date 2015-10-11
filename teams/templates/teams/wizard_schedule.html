@@ -1,8 +1,59 @@
-{% extends "teams/team_wizard.html" %}
-{% block step_title %}
-Step Title
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block head %}
+{{ wizard.form.media }}
 {% endblock %}
 
-{% block step_description %}
-Step Description
+{% block extra_scripts %}
+    <script>
+        function update_occurrence_frequency(occurrence) {
+            if ($(occurrence).text() == "MONTHLY") {
+                $('#text_on').show();
+                $('#text_the').show();
+                $('#id_schedule-occurrence_day_of_month').show();
+                $('#id_schedule-occurrence_day_of_week').hide();
+                $('#id_schedule-occurrence_day_of_week').val('');
+            }
+            else if ($(occurrence).text() == "WEEKLY") {
+                $('#text_on').show();
+                $('#text_the').hide();
+                $('#id_schedule-occurrence_day_of_month').hide();
+                $('#id_schedule-occurrence_day_of_month').val('');
+                $('#id_schedule-occurrence_day_of_week').show();
+
+            }
+            else if ($(occurrence).text() == "DAILY") {
+                $('#text_on').hide();
+                $('#text_the').hide();
+                $('#id_schedule-occurrence_day_of_month').hide();
+                $('#id_schedule-occurrence_day_of_month').val('');
+                $('#id_schedule-occurrence_day_of_week').hide();
+                $('#id_schedule-occurrence_day_of_week').val('');
+            }
+        }
+        $( "#id_schedule-occurrence_freqency").change(function() {
+            $( "#id_schedule-occurrence_freqency option:selected" ).each(function() {
+                update_occurrence_frequency(this);
+            });
+        });
+        update_occurrence_frequency($( "#id_schedule-occurrence_freqency option:selected" ));
+    </script>
+{% endblock %}
+
+{% block content %}
+<h1>Step {{ wizard.steps.step1 }}: Describe your Lunch Schedule</h1>
+
+<div class="row">
+    <form action="" method="post">{% csrf_token %}
+        {{ wizard.management_form }}
+        My team has a lunch {{ form.occurrence_freqency }} <span id="text_on">on</span> <span id="text_the">the</span> {{ form.occurrence_day_of_week }} {{ form.occurrence_day_of_month }}. The person responsible for choosing lunch should be chosen {{ form.advance_notification_days }} days in advance.
+        <br />
+        {% if wizard.steps.prev %}
+        <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "first step" %}</button>
+        <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">{% trans "prev step" %}</button>
+        {% endif %}
+        <input type="submit" value="{% trans "submit" %}"/>
+    </form>
+</div>
 {% endblock %}

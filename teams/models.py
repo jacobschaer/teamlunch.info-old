@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.db import models
 from django_enumfield import enum
+from django.db.models import signals
 
 # Create your models here.
 
@@ -11,16 +13,19 @@ class Team(models.Model):
 
 class TeamMember(models.Model):
     team = models.ForeignKey(Team, related_name="member")
-    name = models.CharField(max_length=255)
-    email = models.EmailField(blank=True)
-    coordinator = models.ManyToManyField(Team)
+    display_name = models.CharField(max_length=255)
+    is_coordinator = models.BooleanField(default=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
 
     def __str__(self):
-        return self.name
+        return self.display_name
 
 class ScheduleFrequency(enum.Enum):
     DAILY = 0
-    WEELY = 1
+    WEEKLY = 1
     MONTHLY = 2
 
 class ScheduleDayOfWeek(enum.Enum):
@@ -34,6 +39,7 @@ class ScheduleDayOfWeek(enum.Enum):
 
 class Schedule(models.Model):
     team = models.ForeignKey(Team)
-    freqency = enum.EnumField(ScheduleFrequency, default=ScheduleFrequency.WEELY)
-    day_of_week = enum.EnumField(ScheduleDayOfWeek, default=None, blank=True)
-    day_of_month = models.IntegerField(blank=True)
+    occurrence_freqency = enum.EnumField(ScheduleFrequency, default=ScheduleFrequency.WEEKLY)
+    occurrence_day_of_week = enum.EnumField(ScheduleDayOfWeek, default=ScheduleDayOfWeek.FRIDAY, blank=True)
+    occurrence_day_of_month = models.IntegerField(blank=True)
+    advance_notification_days = models.IntegerField(default=1)

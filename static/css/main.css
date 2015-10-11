@@ -2,6 +2,11 @@ body {
     background-color: #bbbbbb;
 }
 
+.row {
+  margin-left: 0;
+  margin-right:0;
+}
+
 nav.navbar {
     margin-bottom: 0;
 }

@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from formtools.wizard.views import SessionWizardView
 from django.forms.formsets import formset_factory, BaseFormSet
-from .models import TeamMember, Team
+from .models import TeamMember, Team, Schedule
 
 from .forms import TeamForm1, TeamForm2, TeamForm3, TeamForm4
 from allauth.account.forms import LoginForm
@@ -39,20 +39,44 @@ class TeamWizard(SessionWizardView):
         return [TEMPLATES[self.steps.current]]
 
     def done(self, form_list, **kwargs):
-        form_data = dict()
-        for form in form_list:
-            current_data = form.cleaned_data
-            if type(current_data) == list:
-                for sub_form in current_data:
-                    for key in sub_form.keys():
-                        if not key in form_data:
-                            form_data[key] = list()
-                        form_data[key].append(sub_form[key])
-            else:
-                for key in form.cleaned_data.keys():
-                    form_data[key] = form.cleaned_data[key]
+        # Create Team
+        created_team = Team(
+            name = form_list[1].cleaned_data['name']
+        )
+        created_team.save()
+
+        # Create TeamMember for User
+        created_team_member = TeamMember(
+            user = self.request.user,
+            is_coordinator = True,
+            team = created_team,
+            display_name = form_list[0].cleaned_data['display_name']
+        )
+        created_team_member.save()
+
+        # Create Schedule
+        schedule_form_data = form_list[3].cleaned_data
+        created_schedule = Schedule(
+            team = created_team,
+            occurrence_frequency = scheduled_form_data['occurrence_frequency'],
+            occurrence_day_of_week = scheduled_form_data['occurrence_day_of_week'],
+            occurrence_day_of_month = scheduled_form_data['occurrence_day_of_month'],
+            advance_notification_days = scheduled_form_data['advance_notification_days'],
+        )
+        created_schedule.save()
+
+        # Iterate Over New TeamMembers
+        created_team_mates = list()
+        for team_member in form_list[2].cleaned_data:
+            if team_member:
+                created_team_mates.append((team_member['name'], team_member.get('email', None)))
+
+        # Return Info to Template
         return render_to_response('teams/done.html', {
-            'form_data': form_data,
+            'team' : created_team,
+            'coordinator' : created_team_member,
+            'mates' : created_team_mates,
+            'schedule' : created_schedule
         })
 
     def get_form(self, step=None, data=None, files=None):
@@ -63,5 +87,36 @@ class TeamWizard(SessionWizardView):
             step = self.steps.current
 
         if step == 'coordinator':
-            form.initial['coordinator_name'] = self.request.user.username
+            form.initial['display_name'] = self.request.user.username
         return form
+
+    def get_next_step(self, step=None):
+        """
+        Returns the next step after the given `step`. If no more steps are
+        available, None will be returned. If the `step` argument is None, the
+        current step will be determined automatically.
+        """
+        if step is None:
+            step = self.steps.current
+        form_list = self.get_form_list()
+        keys = list(form_list.keys())
+        # Because of the way conditional dicts work, for some reason 
+        # the 'keys' can lose optional steps... luckily, our first step
+        # is the only optional one, so if the fir step is missing we
+        # simply move along to the next.
+        # Maybe a better way?
+        if step in keys:
+            key = keys.index(step) + 1
+        else:
+            key = 0
+        if len(keys) > key:
+            return keys[key]
+        return None
+
+    def process_step(self, form):
+        # If the user did a local login, the wizard will have merely collected
+        # their login details and done nothing but validate them. So, we 
+        # complete the login before proceeding "Just In Case"
+        if self.steps.current == 'register':
+            form.login(self.request)
+        return self.get_form_step_data(form)

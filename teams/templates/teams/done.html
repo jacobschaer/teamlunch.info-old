@@ -3,11 +3,12 @@
     <div class="jumbotron">
         <h1>Team Builder Wizard:</h1>
     </div>
-      Successfully created Team: {{ form_data.team_name }} with {{ form_data.coordinator_name }} as the coordinator.
+      Successfully created Team: {{ team }} with {{ coordinator }} as the coordinator.
       Teammates include:
       <ul>
-        {% for team_mate in form_data.team_member_name  %}
-          <li>{{ team_mate }}</li>
+        {% for name, email in mates  %}
+          <li>{{ name }}
+            {% if email %} ({{ email }}){% endif %}</li>
         {% endfor %}
       </ul>
       Schedule is: {{ form_data.lunch_schedule }}

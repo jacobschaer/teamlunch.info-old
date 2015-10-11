@@ -3,18 +3,21 @@ from django.forms import Form, ModelForm
 from .models import TeamMember, Team, Schedule
 
 
-class TeamForm1(Form):
-    coordinator_name = forms.CharField(max_length=255)
-
-class TeamForm2(Form):
-    team_name = forms.CharField(max_length=255)
-
-class TeamForm3(ModelForm):
+class TeamForm1(ModelForm):
     class Meta:
         model = TeamMember
-        fields = ['name', 'email']
+        fields = ['display_name']
+
+class TeamForm2(ModelForm):
+    class Meta:
+        model = Team
+        fields = ['name']
+
+class TeamForm3(Form):
+    name = forms.CharField(max_length=255)
+    email = forms.EmailField(max_length=254)
 
 class TeamForm4(ModelForm):
     class Meta:
         model = Schedule
-        fields = ['freqency', 'day_of_week', 'day_of_month']
+        fields = ['occurrence_freqency', 'occurrence_day_of_week', 'occurrence_day_of_month', 'advance_notification_days']

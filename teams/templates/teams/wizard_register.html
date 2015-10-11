@@ -1,14 +1,32 @@
 {% extends "teams/team_wizard.html" %}
 {% load account %}
-{% if user.is_authenticated %}
-    {% block step_title %}
-        Sorry, but you must register!
-    {% endblock %}
-    {% block step_description %}
-        You must register so we can identify you later! Social logins are allowed and encouraged!
-    {% endblock %}
+{% load account socialaccount %}
+{% load i18n %}
 
-{% else %}
 
-{% endif %}
+
+{% block step_title %}
+    Getting to know you...
+{% endblock %}
+
+{% block step_description %}
+    {% get_providers as socialaccount_providers %}
+
+    {% if socialaccount_providers %}
+        <p>{% blocktrans with site.name as site_name %}In order to control your team, we're going to need some way to identify you.
+        To simplify the process, we support a variety of third party accounts along with the traditional username/password approach.
+        To make a new account, visit our <a href="{{ signup_url }}">sign up</a> page.
+        Otherwise, sign in below!{% endblocktrans %}</p>
+
+        <div class="socialaccount_ballot">
+
+          <ul class="socialaccount_providers">
+            {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+          </ul>
+
+        <div class="login-or">{% trans 'or' %}</div>
+    {% else %}
+    {% endif %}
+
+{% endblock %}
 

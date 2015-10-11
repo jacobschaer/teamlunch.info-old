@@ -31,10 +31,6 @@
             <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
         
-        <!-- jQuery -->
-        <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-        <script src="{% static 'django-dynamic-formset/src/jquery.formset.js' %}"></script>
-        
         {% block extrahead %}{% endblock %}
     </head>
 
@@ -71,8 +67,12 @@
             {% block content %}{% endblock %}
         </div> <!-- /container -->
 
+        <!-- jQuery -->
+        <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
 
         <!-- Bootstrap Core JavaScript -->
         <script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
+
+        {% block extra_scripts %}{% endblock %}
     </body>
 </html>
