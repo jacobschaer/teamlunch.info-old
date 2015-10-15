@@ -1,4 +1,5 @@
 from django.test import TestCase, Client, SimpleTestCase
+from datetime import date
 from allauth.utils import get_user_model
 from .models import *
 
@@ -79,3 +80,37 @@ class ScheduleTestCase(SimpleTestCase):
         self.sut.occurrence_day_of_month = 2
         self.sut.advance_notification_days = 1
         self.assertEqual(str(self.sut), 'Lunches are scheduled every month on the 2nd, with someone being selected 1 day in advance.')
+
+    def test_daily_should_pick_on_date(self):
+        self.sut.occurrence_frequency = ScheduleFrequency.DAILY
+        test_date = date(2015, 1, 3)
+        self.assertTrue(self.sut.should_pick_on_date(test_date))
+
+    def test_weekly_should_pick_on_date(self):
+        self.sut.occurrence_frequency = ScheduleFrequency.WEEKLY
+        self.sut.occurrence_day_of_week = ScheduleDayOfWeek.TUESDAY
+        self.sut.advance_notification_days = 3
+        test_date = date(2015, 1, 3) # Saturday
+        self.assertTrue(self.sut.should_pick_on_date(test_date))
+    
+    def test_weekly_should_not_pick_on_date(self):
+        self.sut.occurrence_frequency = ScheduleFrequency.WEEKLY
+        self.sut.occurrence_day_of_week = ScheduleDayOfWeek.TUESDAY
+        self.sut.advance_notification_days = 4
+        test_date = date(2015, 1, 3) # Saturday
+        self.assertFalse(self.sut.should_pick_on_date(test_date))
+
+    def test_monthly_should_pick_on_date(self):
+        self.sut.occurrence_frequency = ScheduleFrequency.MONTHLY
+        self.sut.occurrence_day_of_month = 30
+        self.sut.advance_notification_days = 4
+        test_date = date(2015, 1, 26) # Saturday
+        self.assertTrue(self.sut.should_pick_on_date(test_date))
+
+    def test_monthly_should_not_pick_on_date(self):
+        self.sut.occurrence_frequency = ScheduleFrequency.MONTHLY
+        self.sut.occurrence_day_of_month = 30
+        self.sut.advance_notification_days = 4
+        test_date = date(2015, 1, 27) # Saturday
+        self.assertFalse(self.sut.should_pick_on_date(test_date))
+

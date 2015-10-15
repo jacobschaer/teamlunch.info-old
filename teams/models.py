@@ -1,3 +1,6 @@
+from datetime import date, timedelta
+import random
+
 from django.conf import settings
 from django.db import models
 from django_enumfield import enum
@@ -7,6 +10,9 @@ from django.db.models import signals
 
 class Team(models.Model):
     name = models.CharField(max_length=255)
+
+    def choose_member(self):
+        return random.choice(self.teammember_set.all())
 
     def __str__(self):
         return self.name
@@ -29,13 +35,13 @@ class ScheduleFrequency(enum.Enum):
     MONTHLY = 2
 
 class ScheduleDayOfWeek(enum.Enum):
-    SUNDAY = 0
-    MONDAY = 1
-    TUESDAY = 2
-    WEDNESDAY = 3
-    THURSDAY = 4
-    FRIDAY = 5
-    SATURDAY = 6
+    MONDAY = 0
+    TUESDAY = 1
+    WEDNESDAY = 2
+    THURSDAY = 3
+    FRIDAY = 4
+    SATURDAY = 5
+    SUNDAY = 6
 
 class Schedule(models.Model):
     team = models.ForeignKey(Team)
@@ -53,6 +59,15 @@ class Schedule(models.Model):
 
         return '{number}{suffix}'.format(number = number, suffix = suffix.get(number % 10, 'th'))
 
+    def should_pick_on_date(self, date):
+        # Regardless of "advance_notification_days", dailies always match - it's just question
+        # of what occurrence you're choosing for
+        if self.occurrence_frequency == ScheduleFrequency.DAILY:
+            return True
+        elif self.occurrence_frequency == ScheduleFrequency.WEEKLY:
+            return (self.occurrence_day_of_week - self.advance_notification_days) % 7 == date.weekday()
+        elif self.occurrence_frequency == ScheduleFrequency.MONTHLY:
+            return (date + timedelta(days=self.advance_notification_days)).day == self.occurrence_day_of_month
 
     def __str__(self):
         frequency = ''
