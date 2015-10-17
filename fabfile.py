@@ -1,6 +1,7 @@
 from fabric.api import *
 import os
 from os.path import join, dirname, abspath
+import sys
 import time
 from datetime import datetime
 
@@ -22,6 +23,14 @@ def setup_development_environment():
     print("$> source /usr/local/virtualenvwrapper.sh")
     print("$> workon teamlunch.info")
 
+def setup_server_environment():
+    sudo('apt-get update')
+    sudo('apt-get install rabbitmq-server supervisor')
+    password = input('Enter password: ')
+    sudo('rabbitmqctl add_user team_lunch %s' % password)
+    sudo('rabbitmqctl add_vhost teamlunch.info')
+    sudo('rabbitmqctl set_permissions -p team_lunch.info teamlunch ".*" ".*" ".*"')
+
 def cleanup_development_environment():
     with prefix('source `which virtualenvwrapper.sh`'):
         local('rmvirtualenv teamlunch.info')
@@ -42,6 +51,8 @@ def deploy():
                 run('chmod g+w db.sqlite3')
                 run('cp ~/teamlunch.info/production_settings.py teamlunch/settings.py')
     sudo('systemctl restart apache2')
+    sudo('systemctl restart rabbitmq-server')
+
 
 def run_tests():
     with prefix('source `which virtualenvwrapper.sh`'):
@@ -53,3 +64,17 @@ def update_requirements():
         with prefix('workon teamlunch.info'):
             local('pip freeze > development_requirements.txt')
             local('pip freeze > production_requirements.txt')
+
+def create_supervisord_config():
+    sys.path.append('.')
+    from teamlunch.settings import CELERY_LINUX_USERNAME, CELERY_PROJECT_NAME, CELERY_PROJECT_PATH
+    with open('supervisord/teamlunch.info.ini.template') as template_file:
+        template_string = template_file.read()
+        with open('supervisord/teamlunch.info.ini', 'w') as config_file:
+            config_file.write(template_string.format(
+                username=CELERY_LINUX_USERNAME,
+                project_name=CELERY_PROJECT_NAME,
+                project_path=CELERY_PROJECT_PATH
+            ))
+    local('sudo mkdir -p /var/log/celery/')
+    local('sudo cp supervisord/teamlunch.info.ini /etc/supervisor.d/teamlunch.info.ini')
