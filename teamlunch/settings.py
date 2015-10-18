@@ -11,8 +11,9 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
 import getpass
+import json
+import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -137,3 +138,9 @@ CELERY_BROKER_PASSWORD='guest'
 CELERY_LINUX_USERNAME=getpass.getuser()
 CELERY_PROJECT_NAME='teamlunch.info'
 CELERY_PROJECT_PATH=BASE_DIR
+
+if (os.path.exists(os.path.expanduser('~/team_lunch_yelp_keys.json'))):
+    with open(os.path.expanduser('~/team_lunch_yelp_keys.json')) as config_file:
+        YELP_API_CONFIG = json.load(config_file)
+else:
+    YELP_API_CONFIG = None

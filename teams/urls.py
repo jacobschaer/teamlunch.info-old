@@ -8,4 +8,6 @@ urlpatterns = [
     url(r'^add/', views.TeamWizard.as_view(FORMS,  
         condition_dict={'register' : show_login_step}),
         name='add'),
+    url(r'^(?P<team_id>[0-9]+)/$', views.view_team),
+    url(r'^venue/$', views.venue, name='venue')
 ]

@@ -113,4 +113,3 @@ class ScheduleTestCase(SimpleTestCase):
         self.sut.advance_notification_days = 4
         test_date = date(2015, 1, 27) # Saturday
         self.assertFalse(self.sut.should_pick_on_date(test_date))
-

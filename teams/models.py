@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 import random
+from django.core.mail import send_mail
 
 from django.conf import settings
 from django.db import models
@@ -12,13 +13,29 @@ class Team(models.Model):
     name = models.CharField(max_length=255)
 
     def choose_member(self):
-        return random.choice(self.teammember_set.all())
+        return random.choice(self.member_set.all())
+
+    def notify_members(self):
+        message1 = ('Subject here', 'Here is the message', 'from@example.com', ['first@example.com', 'other@example.com'])
+        message2 = ('Another Subject', 'Here is another message', 'from@example.com', ['second@test.com'])
+        send_mass_mail((message1, message2), fail_silently=False)
+
+    def get_teammember(self, user):
+        for team_member in self.member_set.all():
+            if team_member.user == user:
+                return team_member
+
+    def get_current_lunch(self):
+        try:
+            return self.lunch_set.latest(field_name='date')
+        except Lunch.DoesNotExist:
+            return None
 
     def __str__(self):
         return self.name
 
 class TeamMember(models.Model):
-    team = models.ForeignKey(Team, related_name="member")
+    team = models.ForeignKey(Team, related_name="member_set")
     display_name = models.CharField(max_length=255)
     is_coordinator = models.BooleanField(default=False)
     user = models.ForeignKey(
@@ -83,3 +100,9 @@ class Schedule(models.Model):
             notification = self.advance_notification_days,
             day = 'day' if self.advance_notification_days == 1 else 'days'
         )
+
+class Lunch(models.Model):
+    team = models.ForeignKey(Team)
+    date = models.DateField(auto_now=False, auto_now_add=False)
+    picker = models.ForeignKey(TeamMember)
+    location = models.CharField(max_length=255, blank=True, null=True)
