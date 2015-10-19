@@ -42,11 +42,13 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
-    'teams',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'organizations',
+    'teams',
+
 )
 
 MIDDLEWARE_CLASSES = (
@@ -144,3 +146,6 @@ if (os.path.exists(os.path.expanduser('~/team_lunch_yelp_keys.json'))):
         YELP_API_CONFIG = json.load(config_file)
 else:
     YELP_API_CONFIG = None
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+INVITATION_BACKEND = 'teams.backends.CustomInvitations'

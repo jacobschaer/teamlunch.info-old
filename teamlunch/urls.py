@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from organizations.backends import invitation_backend
 from . import views
 
 
@@ -24,5 +25,5 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^teams/', include('teams.urls', namespace="teams")),
     url(r'^accounts/', include('allauth.urls')),
-    url(r'^accounts/profile', views.profile, name='profile')
-]
+    url(r'^accounts/profile', views.profile, name='profile'),
+    url(r'^invitations/', include(invitation_backend().get_urls())),]

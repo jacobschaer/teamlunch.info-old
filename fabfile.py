@@ -50,6 +50,7 @@ def deploy():
                 run('chmod g+w .')
                 run('chmod g+w db.sqlite3')
                 run('cp ~/teamlunch.info/production_settings.py teamlunch/settings.py')
+                run('./manage.py collectstatic -v0 --noinput')
     sudo('systemctl restart apache2')
     sudo('systemctl restart rabbitmq-server')
 

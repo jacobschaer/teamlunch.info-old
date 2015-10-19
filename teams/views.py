@@ -1,38 +1,48 @@
+from functools import partial
+
+from allauth.account.forms import LoginForm
+
 from django.conf import settings
 from django.shortcuts import render
 from django.template import RequestContext, loader
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
-
-
 from django.shortcuts import render_to_response
-from formtools.wizard.views import SessionWizardView
-from django.forms.formsets import formset_factory, BaseFormSet
-from .models import TeamMember, Team, Schedule
+from django.forms.formsets import formset_factory
+from django.contrib.sites.shortcuts import get_current_site
 
-from .forms import TeamForm1, TeamForm2, TeamForm3, TeamForm4, YelpForm
-from allauth.account.forms import LoginForm
+from formtools.wizard.views import SessionWizardView
+
+from organizations.models import OrganizationUser
+from organizations.forms import OrganizationUserAddForm, OrganizationUserForm
+from organizations.utils import create_organization
+
+from .models import Team, Schedule
+from .forms import TeamForm2, TeamForm3, TeamForm4, YelpForm
+
 from yelp import YelpAPI
 
-from collections import OrderedDict
+# Create Organization Helper Function 
+create_team = partial(create_organization, model=Team, org_user_defaults={'is_admin' : True})
+
 
 # Create your views here.
 def index(request):
+    memberships = OrganizationUser.objects.all().prefetch_related('organization').filter(user=request.user)
     template = loader.get_template('teams/index.html')
-    context = RequestContext(request, {})
+    context = RequestContext(request, {'memberships' : memberships})
     return HttpResponse(template.render(context))
 
 FORMS = [("register", LoginForm),
-         ("coordinator", TeamForm1),
          ("teamname", TeamForm2),
          ("teammates", formset_factory(TeamForm3, extra=5)),
          ("schedule", TeamForm4)]
 
 TEMPLATES = {"register": "teams/wizard_register.html",
-             "coordinator": "teams/wizard_coordinator.html",
              "teamname": "teams/wizard_teamname.html",
              "teammates": "teams/wizard_teammates.html",
              "schedule": "teams/wizard_schedule.html"}
+
 
 def view_team(request, team_id=None):
     if team_id:
@@ -45,7 +55,7 @@ def view_team(request, team_id=None):
                 context = RequestContext(request,
                     {'team' : team,
                      'upcoming_lunch' : latest_lunch,
-                     'members' : team.member_set.all()})
+                     'members' : team.users.all()})
                 return HttpResponse(template.render(context))
             else:
                 raise PermissionDenied("You're not authorized to view this team...")
@@ -82,20 +92,10 @@ class TeamWizard(SessionWizardView):
     def done(self, form_list, **kwargs):
         keys = self.get_form_list().keys()
 
-        # Create Team
-        created_team = Team(
-            name = form_list[keys.index('teamname')].cleaned_data['name']
-        )
+        # Create Team and Owner User Account
+        created_team = create_team(self.request.user,
+            form_list[keys.index('teamname')].cleaned_data['name'])
         created_team.save()
-
-        # Create TeamMember for User
-        created_team_member = TeamMember(
-            user = self.request.user,
-            is_coordinator = True,
-            team = created_team,
-            display_name = form_list[keys.index('coordinator')].cleaned_data['display_name']
-        )
-        created_team_member.save()
 
         # Create Schedule
         schedule_form_data = form_list[keys.index('schedule')].cleaned_data
@@ -108,16 +108,20 @@ class TeamWizard(SessionWizardView):
         )
         created_schedule.save()
 
-        # Iterate Over New TeamMembers
+        # Invite Teammates to join 
         created_team_mates = list()
         for team_member in form_list[keys.index('teammates')].cleaned_data:
-            if team_member:
-                created_team_mates.append((team_member['name'], team_member.get('email', None)))
+            if team_member.get('email', ''):
+                print 'Email: ' + team_member.get('email', '')
+                created_team_member = created_team.invite_user(get_current_site(self.request), self.request.user,
+                                                               team_member['first_name'], team_member['last_name'],
+                                                               team_member['email'])
+                created_team_mates.append((team_member['first_name'], team_member['first_name'],
+                                           team_member.get('email', None)))
 
         # Return Info to Template
         return render_to_response('teams/done.html', {
             'team' : created_team,
-            'coordinator' : created_team_member,
             'mates' : created_team_mates,
             'schedule' : created_schedule
         })

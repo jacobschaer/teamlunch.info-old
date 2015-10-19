@@ -3,13 +3,13 @@
       <h1>All Done!</h1>
       <div class="row">
       <p>Congrats! You have successfully created a new team with the name: {{ team }}. <br />
-      You have been assigned as a coordinator with nickname: {{ coordinator }}. <br />
+      You have been assigned as a coordinator. <br />
       {{ schedule }} <br />
       The following teammates have been invited:</p>
         <ul>
-          {% for name, email in mates  %}
+          {% for first_name, last_name, email in mates  %}
             <li>{{ name }}
-              {% if email %} ({{ email }}){% endif %}</li>
+              {% if email %} {{ first_Name }}, {{ last_name }} ({{ email }}){% endif %}</li>
           {% endfor %}
         </ul>
     {% endblock %}

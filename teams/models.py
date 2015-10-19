@@ -6,14 +6,14 @@ from django.conf import settings
 from django.db import models
 from django_enumfield import enum
 from django.db.models import signals
+from organizations.models import Organization, OrganizationUser, get_user_model
+from organizations.backends import invitation_backend
 
 # Create your models here.
 
-class Team(models.Model):
-    name = models.CharField(max_length=255)
-
+class Team(Organization):   
     def choose_member(self):
-        return random.choice(self.member_set.all())
+        return random.choice(self.organization_users.all())
 
     def notify_members(self):
         message1 = ('Subject here', 'Here is the message', 'from@example.com', ['first@example.com', 'other@example.com'])
@@ -21,8 +21,8 @@ class Team(models.Model):
         send_mass_mail((message1, message2), fail_silently=False)
 
     def get_teammember(self, user):
-        for team_member in self.member_set.all():
-            if team_member.user == user:
+        for team_member in self.users.all():
+            if team_member == user:
                 return team_member
 
     def get_current_lunch(self):
@@ -31,20 +31,27 @@ class Team(models.Model):
         except Lunch.DoesNotExist:
             return None
 
+    def invite_user(self, site, sender, first_name, last_name, email, admin=False):
+        try:
+            user = get_user_model().objects.get(email__iexact=email)
+        except get_user_model().MultipleObjectsReturned:
+            raise forms.ValidationError(_("This email address has been used multiple times."))
+        except get_user_model().DoesNotExist:
+            user = invitation_backend().invite_by_email(
+                    email,
+                    **{'domain': site,
+                        'organization': self,
+                        'sender': sender})
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+        return OrganizationUser.objects.create(user=user,
+                organization=self,
+                is_admin=admin)
+
+
     def __str__(self):
         return self.name
-
-class TeamMember(models.Model):
-    team = models.ForeignKey(Team, related_name="member_set")
-    display_name = models.CharField(max_length=255)
-    is_coordinator = models.BooleanField(default=False)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
-
-    def __str__(self):
-        return self.display_name
 
 class ScheduleFrequency(enum.Enum):
     DAILY = 0
@@ -104,5 +111,5 @@ class Schedule(models.Model):
 class Lunch(models.Model):
     team = models.ForeignKey(Team)
     date = models.DateField(auto_now=False, auto_now_add=False)
-    picker = models.ForeignKey(TeamMember)
+    picker = models.ForeignKey(OrganizationUser)
     location = models.CharField(max_length=255, blank=True, null=True)
