@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     'djcelery',
+    'django_extensions',
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,9 +47,7 @@ INSTALLED_APPS = (
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'organizations',
     'teams',
-
 )
 
 MIDDLEWARE_CLASSES = (

@@ -1,7 +1,6 @@
 from django import forms
 from django.forms import Form, ModelForm
 from .models import Team, Schedule
-from organizations.models import OrganizationUser
 
 
 class TeamForm2(ModelForm):

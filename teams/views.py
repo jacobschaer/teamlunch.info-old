@@ -13,7 +13,6 @@ from django.contrib.sites.shortcuts import get_current_site
 
 from formtools.wizard.views import SessionWizardView
 
-from organizations.models import OrganizationUser
 from organizations.forms import OrganizationUserAddForm, OrganizationUserForm
 from organizations.utils import create_organization
 
@@ -28,7 +27,7 @@ create_team = partial(create_organization, model=Team, org_user_defaults={'is_ad
 
 # Create your views here.
 def index(request):
-    memberships = OrganizationUser.objects.all().prefetch_related('organization').filter(user=request.user)
+    memberships = TeamMember.objects.all().prefetch_related('organization').filter(user=request.user)
     template = loader.get_template('teams/index.html')
     context = RequestContext(request, {'memberships' : memberships})
     return HttpResponse(template.render(context))
