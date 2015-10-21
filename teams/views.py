@@ -164,5 +164,6 @@ class TeamWizard(SessionWizardView):
         # their login details and done nothing but validate them. So, we 
         # complete the login before proceeding "Just In Case"
         if self.steps.current == 'register':
+            print self.request.POST
             form.login(self.request)
         return self.get_form_step_data(form)

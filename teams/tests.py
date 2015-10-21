@@ -1,7 +1,10 @@
+from django.core import mail
 from django.test import TestCase, Client, SimpleTestCase
 from datetime import date
 from allauth.utils import get_user_model
 from .models import *
+from .views import create_team
+from django.core.urlresolvers import reverse
 
 def create_user_and_login(client):
     user = get_user_model().objects.create(username='john', is_active=True)
@@ -43,9 +46,61 @@ class ProfilePageTestCase(SimpleTestCase):
         response = self.c.get('/accounts/profile')
         self.assertRedirects(response, '/accounts/login/?next=/accounts/profile', status_code=302, target_status_code=200)
 
+
 class WizardTestCase(SimpleTestCase):
     def setUp(self):
         self.c = Client()
+        self.wizard_url = reverse('teams:add')
+
+    def test_wizard_available(self):
+        response = self.c.get(self.wizard_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_first_page_is_login_if_not_already(self):
+        response = self.c.get(self.wizard_url)
+        self.assertEqual(response.context['wizard']['steps'].current, 'register')
+
+    def test_register_view(self):
+        user = get_user_model().objects.create(username='john', is_active=True)
+        user.set_password('doe')
+        user.save()
+        post_data = {
+          'team_wizard-current_step': ['register'],
+          'register-login': ['john'],
+          'register-password': ['doe']}
+        response = self.c.get(self.wizard_url)
+        response = self.c.post(self.wizard_url, post_data)
+        self.assertEqual(response.status_code, 200)
+        print(response.context['wizard'])
+        self.assertEqual(response.context['wizard']['steps'].current, 'teamname')       
+        user.delete()
+
+    def test_first_page_is_teamname_if_logged_in(self):
+        user = create_user_and_login(self.c)
+        response = self.c.get(self.wizard_url)
+        self.assertEqual(response.context['wizard']['steps'].current, 'teamname')
+        user.delete()
+
+
+class InvitationTestCase(SimpleTestCase):
+    def setUp(self):
+        self.c = Client()
+        self.owner = get_user_model().objects.create(username='john', is_active=True)
+        self.team = create_team(self.owner, 'team_amazing')
+        self.team.add_user(self.owner)
+        self.created_team_member = created_team.invite_user(1, self.owner,
+                                                            'jane', 'doe',
+                                                            'jane_doe@example.com')
+        self.created_team_member.save()
+
+    def tearDown(self):
+        self.created_team_member.delete()
+        self.owner.delete()
+        self.team.delete()
+
+    def test_that_email_is_sent(self):
+        self.assertEqual(mail.outbox[0].address, 'jane@doe@example.com')    
+
 
 class ScheduleTestCase(SimpleTestCase):
     def setUp(self):
