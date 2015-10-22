@@ -192,7 +192,7 @@ class TeamMember(OrganizationUserBase):
         """
         from organizations.exceptions import OwnershipRequired
         try:
-            if self.team.owner.organization_user.id == self.id:
+            if self.organization.owner.organization_user.id == self.id:
                 raise OwnershipRequired(_("Cannot delete organization owner "
                     "before organization or transferring ownership."))
         # TODO This line presumes that OrgOwner model can't be modified

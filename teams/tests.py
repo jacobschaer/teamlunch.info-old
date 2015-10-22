@@ -1,5 +1,5 @@
 from django.core import mail
-from django.test import TestCase, Client, SimpleTestCase
+from django.test import TestCase, Client
 from datetime import date
 from allauth.utils import get_user_model
 from .models import *
@@ -14,7 +14,7 @@ def create_user_and_login(client):
     return user
 
 # Create your tests here.
-class HomePageTestCase(SimpleTestCase):
+class HomePageTestCase(TestCase):
     def setUp(self):
         self.c = Client()
 
@@ -38,7 +38,7 @@ class HomePageTestCase(SimpleTestCase):
         self.assertContains(response, 'Logout')
         user.delete()
 
-class ProfilePageTestCase(SimpleTestCase):
+class ProfilePageTestCase(TestCase):
     def setUp(self):
         self.c = Client()
 
@@ -47,7 +47,7 @@ class ProfilePageTestCase(SimpleTestCase):
         self.assertRedirects(response, '/accounts/login/?next=/accounts/profile', status_code=302, target_status_code=200)
 
 
-class WizardTestCase(SimpleTestCase):
+class WizardTestCase(TestCase):
     def setUp(self):
         self.c = Client()
         self.wizard_url = reverse('teams:add')
@@ -82,13 +82,12 @@ class WizardTestCase(SimpleTestCase):
         user.delete()
 
 
-class InvitationTestCase(SimpleTestCase):
+class InvitationTestCase(TestCase):
     def setUp(self):
         self.c = Client()
         self.owner = get_user_model().objects.create(username='john', is_active=True)
         self.team = create_team(self.owner, 'team_amazing')
-        self.team.add_user(self.owner)
-        self.created_team_member = created_team.invite_user(1, self.owner,
+        self.created_team_member = self.team.invite_user(1, self.owner,
                                                             'jane', 'doe',
                                                             'jane_doe@example.com')
         self.created_team_member.save()
@@ -99,10 +98,10 @@ class InvitationTestCase(SimpleTestCase):
         self.team.delete()
 
     def test_that_email_is_sent(self):
-        self.assertEqual(mail.outbox[0].address, 'jane@doe@example.com')    
+        self.assertEqual(mail.outbox[0].to[0], 'jane_doe@example.com')    
 
 
-class ScheduleTestCase(SimpleTestCase):
+class ScheduleTestCase(TestCase):
     def setUp(self):
         self.sut = Schedule()
 
