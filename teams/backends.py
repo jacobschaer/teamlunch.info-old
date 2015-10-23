@@ -1,3 +1,6 @@
+from django.core.mail import EmailMessage
+from django.template import Context, loader
+from django.conf import settings
 from django.shortcuts import render
 from django.http import Http404
 from django.utils.translation import ugettext as _
@@ -47,6 +50,25 @@ class CustomBaseBackend(BaseBackend):
 
         return render(request, 'teams/accept_invitation.html',
                 {'form': form})
+
+    # This could be replaced with a more channel agnostic function, most likely
+    # in a custom backend.
+    def _send_email(self, user, subject_template, body_template,
+            sender=None, **kwargs):
+        """Utility method for sending emails to new users"""
+        from_email = settings.DEFAULT_FROM_EMAIL
+        reply_to = from_email
+
+        headers = {'Reply-To': reply_to}
+        kwargs.update({'sender': sender, 'user': user})
+        ctx = Context(kwargs, autoescape=False)
+
+        subject_template = loader.get_template(subject_template)
+        body_template = loader.get_template(body_template)
+        subject = subject_template.render(ctx).strip()  # Remove stray newline characters
+        body = body_template.render(ctx)
+        return EmailMessage(subject, body, from_email, [user.email],
+                headers=headers).send()
 
 
 class CustomInvitations(CustomBaseBackend, InvitationBackend):
