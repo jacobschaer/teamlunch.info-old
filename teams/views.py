@@ -54,7 +54,9 @@ def view_team(request, team_id=None):
                 context = RequestContext(request,
                     {'team' : team,
                      'upcoming_lunch' : latest_lunch,
-                     'members' : team.users.all()})
+                     'members' : team.users.all(),
+                     'chosen_one' : latest_lunch.picker == team_member if latest_lunch else False,
+                    })
                 return HttpResponse(template.render(context))
             else:
                 raise PermissionDenied("You're not authorized to view this team...")
@@ -62,6 +64,53 @@ def view_team(request, team_id=None):
             raise Http404("Team does not exist")
     else:
         raise Http404("Team does not exist")
+
+def set_lunch_location(request, team_id=None, team_lunch_id=None):
+    if team_id and team_lunch_id:
+        if request.method == "POST" and request.POST['yelp_id']:
+            try:
+                team = Team.objects.get(pk=team_id)
+                lunch = team.lunches.get(pk=team_lunch_id)
+                team_member = team.get_teammember(request.user)
+                if lunch.picker == team_member or team.is_owner(request.user):
+                    lunch.location = request.POST['yelp_id']
+                else:
+                    raise PermissionDenied("You're not the chosen one...")
+            except Team.DoesNotExist:
+                raise Http404('Not a valid team.')
+            except Lunch.DoesNotExist:
+                raise Http404('Not a valid lunch.')
+
+def edit_lunch(request, team_id=None, team_lunch_id=None):
+    if team_id and team_lunch_id:
+        try:
+            team = Team.objects.get(pk=team_id)
+            lunch = team.lunches.get(pk=team_lunch_id)
+            team_member = team.get_teammember(request.user)
+            if team_member:
+                if lunch.picker == team_member or team.is_owner(request.user):
+                    if request.method == "POST":
+                        form = YelpForm(request.POST)
+                        if form.is_valid():
+                            if settings.YELP_API_CONFIG:
+                                yelp_api = YelpAPI(settings.YELP_API_CONFIG)
+                                print form.cleaned_data
+                                results = yelp_api.query_api(form.cleaned_data['search'], form.cleaned_data['location'])
+                                template = loader.get_template('teams/choose.html')
+                                context = RequestContext(request, {'form' : form, 'results' : results})
+                                return HttpResponse(template.render(context))
+                    else:
+                        template = loader.get_template('teams/choose.html')
+                        context = RequestContext(request, {'form' : YelpForm()})
+                        return HttpResponse(template.render(context))
+            else:
+                raise PermissionDenied("You're not authorized to view this team...")
+        except Team.DoesNotExist:
+            raise Http404("Team instance does not exist.")
+        except Lunch.DoesNotExist:
+            raise Http404("Lunch instance does not exist.")
+    else:
+        raise Http404("Team/Lunch does not exist")
 
 def venue(request):
     if request.method == "POST":

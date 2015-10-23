@@ -10,13 +10,21 @@
     <div class="col-lg-12">
       {% if latest_lunch %}
         <h2>Upcoming Event:</h2>
+        {% if chosen_one %}
+        <p>
+          Greetings Exhalted One!
+          The task of choosing your teams lunch for {{ latest_lunch.date }} has fallen onto your shoulders.
+          Please go <a href="edit/">To make your selection</a>
+        </p>
+        {% else %}
         <p>Lunch is scheduled for {{ latest_lunch.date }}. {{ latest_lunch.picker }}
           {% if latest_lunch.location %}
             has picked {{ latest_lunch.location }}.
           {% else %}
             hasn't picked yet.
           {% endif %}
-         </p>
+        </p>
+      {% endif %}
       {% else %}
       <h2>No Lunches Scheduled!</h2>
       {% endif %}

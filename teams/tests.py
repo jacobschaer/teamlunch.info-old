@@ -1,3 +1,4 @@
+import re
 from django.core import mail
 from django.test import TestCase, Client
 from datetime import date
@@ -38,6 +39,7 @@ class HomePageTestCase(TestCase):
         self.assertContains(response, 'Logout')
         user.delete()
 
+
 class ProfilePageTestCase(TestCase):
     def setUp(self):
         self.c = Client()
@@ -71,7 +73,6 @@ class WizardTestCase(TestCase):
         response = self.c.get(self.wizard_url)
         response = self.c.post(self.wizard_url, post_data)
         self.assertEqual(response.status_code, 200)
-        print(response.context['wizard'])
         self.assertEqual(response.context['wizard']['steps'].current, 'teamname')       
         user.delete()
 
@@ -85,7 +86,7 @@ class WizardTestCase(TestCase):
 class InvitationTestCase(TestCase):
     def setUp(self):
         self.c = Client()
-        self.owner = get_user_model().objects.create(username='john', is_active=True)
+        self.owner = get_user_model().objects.create(username='johnny', is_active=True)
         self.team = create_team(self.owner, 'team_amazing')
         self.created_team_member = self.team.invite_user(1, self.owner,
                                                             'jane', 'doe',
@@ -99,6 +100,26 @@ class InvitationTestCase(TestCase):
 
     def test_that_email_is_sent(self):
         self.assertEqual(mail.outbox[0].to[0], 'jane_doe@example.com')    
+
+    def test_that_email_link_works_for_new_users(self):
+        email = mail.outbox[0]
+        link_regex = re.compile(r'/invitations/[^/]+/')
+        invite_link = link_regex.search(email.body).group()
+        response = self.c.get(invite_link)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['form']['first_name'].value(), 'jane')
+        self.assertEqual(response.context['form']['last_name'].value(), 'doe')
+        self.assertEqual(response.context['form']['email'].value(), 'jane_doe@example.com')
+
+    def test_that_email_link_works_for_existing_users(self):
+        email = mail.outbox[0]
+        link_regex = re.compile(r'/invitations/[^/]+/')
+        invite_link = link_regex.search(email.body).group()
+        existing_user = create_user_and_login(self.c)
+        response = self.c.get(invite_link)
+        self.assertRedirects(response, reverse('teams:detail', kwargs={'team_id' : self.team.pk}),
+                             status_code=302, target_status_code=200)
+        self.assertTrue(existing_user in self.team.users.all())
 
 
 class ScheduleTestCase(TestCase):
@@ -167,3 +188,58 @@ class ScheduleTestCase(TestCase):
         self.sut.advance_notification_days = 4
         test_date = date(2015, 1, 27) # Saturday
         self.assertFalse(self.sut.should_pick_on_date(test_date))
+
+class TeamTestCase(TestCase):
+    def test_one_remaining_picker(self):
+        owner = get_user_model().objects.create(username='johnny', is_active=True, password='asdf')
+        team = create_team(owner, 'team_amazing1')
+        user1 = get_user_model().objects.create(username='a', email="a@example.com", password="asdf")
+        user2 = get_user_model().objects.create(username='b', email="sexample.com", password="asdf")
+        user3 = get_user_model().objects.create(username='c', email="d@example.com", password="asdf")
+        member1 = team.add_user(user1)
+        member2 = team.add_user(user2)
+        member3 = team.add_user(user3)
+        team.owner.organization_user.previously_chosen = True
+        member1.previously_chosen = True
+        member2.previously_chosen = True
+        member1.save()
+        member2.save()
+        team.owner.organization_user.save()
+        for i in range(0,100):
+            self.assertEqual(team.choose_member(), member3)
+
+    def test_all_remaining_pickers(self):
+        owner = get_user_model().objects.create(username='johnny5', is_active=True, password='asdf')
+        team = create_team(owner, 'team_amazing2')
+        user1 = get_user_model().objects.create(username='d', email="f@example.com", password="asdf")
+        user2 = get_user_model().objects.create(username='e', email="df@example.com", password="asdf")
+        user3 = get_user_model().objects.create(username='f', email="sdf@example.com", password="asdf")
+        user1.save()
+        user2.save()
+        user3.save()
+        member1 = team.add_user(user1)
+        member2 = team.add_user(user2)
+        member3 = team.add_user(user3)
+        for i in range(0,100):
+            self.assertTrue(team.choose_member() in [team.owner.organization_user, member1, member2, member3])
+
+    def test_no_remaining_pickers(self):
+        owner = get_user_model().objects.create(username='johnny', is_active=True, password='asdf')
+        team = create_team(owner, 'team_amazing1')
+        user1 = get_user_model().objects.create(username='a', email="a@example.com", password="asdf")
+        user2 = get_user_model().objects.create(username='b', email="sexample.com", password="asdf")
+        user3 = get_user_model().objects.create(username='c', email="d@example.com", password="asdf")
+        member1 = team.add_user(user1)
+        member2 = team.add_user(user2)
+        member3 = team.add_user(user3)
+        team.owner.organization_user.previously_chosen = True
+        member1.previously_chosen = True
+        member2.previously_chosen = True
+        member3.previously_chosen = True
+        member1.save()
+        member2.save()
+        member3.save()
+        team.owner.organization_user.save()
+        team.choose_member()
+        for member in team.organization_users.all():
+            self.assertEqual(member.previously_chosen , False)

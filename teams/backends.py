@@ -1,7 +1,8 @@
+from django.core.urlresolvers import reverse
 from django.core.mail import EmailMessage
 from django.template import Context, loader
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import Http404
 from django.utils.translation import ugettext as _
 
@@ -37,7 +38,7 @@ class CustomBaseBackend(BaseBackend):
             user = authenticate(username=form.cleaned_data['username'],
                     password=form.cleaned_data['password'])
             login(request, user)
-            return redirect(reverse('detail', team_id=team.pk))
+            return redirect(reverse('teams:detail', kwargs={'team_id' : team.pk}))
 
         # If the user is logged in, associate the user with the corresponding
         # TeamMember object and move on. They're either already logged in,
@@ -46,7 +47,7 @@ class CustomBaseBackend(BaseBackend):
             teammember.user = request.user
             user.delete()
             teammember.save()
-            return redirect(reverse('detail', team_id=team.pk))
+            return redirect(reverse('teams:detail', kwargs={'team_id' : team.pk}))
 
         return render(request, 'teams/accept_invitation.html',
                 {'form': form})

@@ -10,6 +10,7 @@ from django.db.models import signals
 from django_enumfield import enum
 from django.utils.translation import ugettext_lazy as _
 
+from organizations.signals import user_added, user_removed, owner_changed
 from organizations.backends import invitation_backend
 from organizations.base import (OrganizationBase, OrganizationUserBase, OrganizationOwnerBase)
 from organizations.models import get_user_model
@@ -136,7 +137,14 @@ class Team(OrganizationBase):
         return self.owner.organization_user.user == user
 
     def choose_member(self):
-        return random.choice(self.organization_users.all())
+        try:
+            return random.choice(self.organization_users.filter(previously_chosen=False))
+        except IndexError:
+            for member in self.organization_users.all():
+                member.previously_chosen = False
+                member.save()
+            return random.choice(self.organization_users.filter(previously_chosen=False))
+
 
     def notify_members(self):
         message1 = ('Subject here', 'Here is the message', 'from@example.com', ['first@example.com', 'other@example.com'])
@@ -175,6 +183,7 @@ class Team(OrganizationBase):
 
 class TeamMember(OrganizationUserBase):
     is_admin = models.BooleanField(default=False)
+    previously_chosen = models.BooleanField(default=False)
 
     class Meta(OrganizationUserBase.Meta):
         verbose_name = _("team member")
@@ -202,6 +211,8 @@ class TeamMember(OrganizationUserBase):
 
 
 class TeamOwner(OrganizationOwnerBase):
+    previously_chosen = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = _("team owner")
         verbose_name_plural = _("team owners")
